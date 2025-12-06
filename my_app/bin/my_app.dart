@@ -1,30 +1,30 @@
-// bin/my_app.dart
-
 import 'dart:io';
 
+import 'package:my_app/db_helper.dart';
 import 'package:my_app/student.dart';
 
 void main() {
-  final List<Student> students = [];
-  showMenu();
+  final dbHelper = DBHelper();
   while (true) {
-    final choice = readLine('Enter your choice (0-4): ');
+    showMenu();
+    final choice = readLine('Choose an option (0-4): ');
 
     switch (choice) {
       case '1':
-        showAllStudents(students);
+        showAllStudents(dbHelper);
         break;
       case '2':
-        addStudent(students);
+        addStudent(dbHelper);
         break;
       case '3':
-        removeStudent(students);
+        removeStudent(dbHelper);
         break;
       case '4':
-        findStudent(students);
+        findStudent(dbHelper);
         break;
       case '0':
-        print('Exiting program... Bye!');
+        print('Program exited. Goodbye!');
+        dbHelper.close();
         return;
       default:
         print('Invalid option. Please try again.');
@@ -41,61 +41,61 @@ void showMenu() {
   print('0. Exit');
 }
 
-void showAllStudents(List<Student> list) {
-  print('\n=== STUDENT LIST ===');
-  if (list.isEmpty) {
+void showAllStudents(DBHelper dbHelper) {
+  print('\n--- STUDENT LIST ---');
+  final students = dbHelper.getAllStudents();
+
+  if (students.isEmpty) {
     print('The list is empty.');
   } else {
-    for (var sv in list) {
+    for (final sv in students) {
       print(sv);
     }
-    print('Total: ${list.length} students');
+
+    int total = students.length;
+    if (total == 1) print('Total: $total student.');
+    print('Total: $total students');
   }
 }
 
-void addStudent(List<Student> list) {
-  print('\n=== ADD NEW STUDENT ===');
+void addStudent(DBHelper dbHelper) {
+  print('\n--- ADD NEW STUDENT ---');
 
   final id = readNonEmpty('Enter ID: ');
-
-  final isExist = list.any((sv) => sv.id == id);
-  if (isExist) {
-    print('Error: This ID already exists.');
-    return;
-  }
-
   final name = readNonEmpty('Enter Name: ');
   final math = readDouble('Math Score: ');
   final eng = readDouble('English Score: ');
 
-  final newSv = Student(id: id, name: name, mathScore: math, engScore: eng);
+  final newStudent = Student(id: id, name: name, mathScore: math, engScore: eng);
 
-  list.add(newSv);
-  print('Student added successfully!');
+  dbHelper.insertStudent(newStudent);
 }
 
-void removeStudent(List<Student> list) {
-  final inputId = readNonEmpty('\nEnter ID to remove: ');
+void removeStudent(DBHelper dbHelper) {
+  final id = readNonEmpty('\nEnter ID to remove: ');
 
-  final oldLength = list.length;
-  list.removeWhere((sv) => sv.id == inputId);
+  final isDeleted = dbHelper.deleteStudent(id);
 
-  if (list.length < oldLength) {
-    print('Student with ID $inputId has been removed.');
+  if (isDeleted) {
+    print('Student with ID $id has been removed.');
   } else {
-    print('No student found with ID $inputId.');
+    print('No student found with ID $id.');
   }
 }
 
-void findStudent(List<Student> list) {
-  final keyword = readLine('\nEnter name to search: ').toLowerCase();
+void findStudent(DBHelper dbHelper) {
+  final keyword = readLine('\nEnter name to search: ');
 
-  final results = list.where((sv) => sv.name.toLowerCase().contains(keyword)).toList();
+  final results = dbHelper.searchByName(keyword);
 
   if (results.isEmpty) {
     print('\nNo students found.');
   } else {
-    showAllStudents(results);
+    print('\n--- SEARCH RESULTS ---');
+    for (final sv in results) {
+      print(sv);
+    }
+    print('Total: ${results.length} students found');
   }
 }
 
