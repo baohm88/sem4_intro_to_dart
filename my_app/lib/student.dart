@@ -1,28 +1,22 @@
-import 'package:intl/intl.dart';
-
 class Student {
-  String id;
+  final String id;
   String name;
-  DateTime dob;
-  double score;
+  double mathScore;
+  double engScore;
 
-  Student({required this.id, required this.name, required this.dob, this.score = 0.0});
+  Student({required this.id, required this.name, required this.mathScore, required this.engScore});
 
-  int get age {
-    return DateTime.now().year - dob.year;
+  double get averageScore => (mathScore + engScore) / 2;
+
+  String get rank {
+    if (averageScore >= 8.0) return 'Excellent';
+    if (averageScore >= 6.5) return 'Good';
+    if (averageScore >= 5.0) return 'Average';
+    return 'Weak';
   }
 
-  void showInfo() {
-    String formattedDate = DateFormat('dd/mm/yyyy').format(dob);
-    print('-------------------------');
-    print('SV: $name (ID: $id)');
-    print('Ngày sinh: $formattedDate (Tuổi: $age)');
-    print('Điểm: $score -> Xếp loại: ${_classify()}');
-  }
-
-  String _classify() {
-    if (score >= 8.0) return 'Excellent';
-    if (score >= 5.0) return 'Good';
-    return 'Average';
+  @override
+  String toString() {
+    return 'ID: $id | Name: $name | Avg Score: ${averageScore.toStringAsFixed(2)} | Rank: $rank';
   }
 }
